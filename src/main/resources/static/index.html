@@ -28,12 +28,42 @@
       <h2>Сообщения с сервера</h2>
       <ul id="messages"></ul>
     </section>
+
+    <section class="card">
+      <h2>Фото в 3D</h2>
+      <p class="muted">Загрузите фото — оно появится в виде карточки, которую можно вращать мышью или пальцем, приближать колесом и крутить в авто-режиме.</p>
+      <input type="file" id="photo-input" accept="image/*">
+
+      <div class="filter-row">
+        <button type="button" class="filter-btn active" data-filter="none">Обычное</button>
+        <button type="button" class="filter-btn" data-filter="grayscale">Ч/б</button>
+        <button type="button" class="filter-btn" data-filter="sepia">Сепия</button>
+        <button type="button" class="filter-btn" data-filter="invert">Инверсия</button>
+      </div>
+
+      <label class="autorotate-label">
+        <input type="checkbox" id="autorotate-toggle" checked>
+        Автовращение
+      </label>
+
+      <div class="canvas-wrap">
+        <canvas id="three-canvas"></canvas>
+        <p id="viewer-hint">Загрузите фото, чтобы увидеть его в 3D</p>
+      </div>
+      <p id="photo-status"></p>
+
+      <h3>Галерея (фото других посетителей)</h3>
+      <div id="photo-gallery" class="gallery"></div>
+    </section>
   </main>
 
   <footer>
     <p>Статический фронт и REST API отдаются одним и тем же Java-приложением.</p>
   </footer>
 </div>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="app.js"></script>
+<script src="photo3d.js"></script>
 </body>
 </html>
