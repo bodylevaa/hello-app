@@ -91,6 +91,72 @@ function ensureMeshForImage(img) {
   scene.add(mesh);
 }
 
+function buildReliefMesh(colorImage, depthCanvasEl) {
+  // Строит рельефную сетку: берём плоскость, «выталкиваем» каждую вершину по карте глубины.
+  const segments = 96;
+  const aspect = colorImage.width / colorImage.height;
+  const cardHeight = 2.4;
+  const cardWidth = cardHeight * aspect;
+  const DEPTH_SCALE = 0.6; // максимальный "вынос" в мировых единицах
+
+  workCanvas.width = colorImage.width;
+  workCanvas.height = colorImage.height;
+  const ctx = workCanvas.getContext("2d");
+  ctx.drawImage(colorImage, 0, 0);
+
+  if (texture) texture.dispose();
+  texture = new THREE.CanvasTexture(workCanvas);
+
+  const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight, segments, segments);
+  const posAttr = geometry.attributes.position;
+  const uvAttr = geometry.attributes.uv;
+
+  // Сэмплируем карту глубины в сетку (segments+1) x (segments+1).
+  const sampleCanvas = document.createElement("canvas");
+  sampleCanvas.width = segments + 1;
+  sampleCanvas.height = segments + 1;
+  const sctx = sampleCanvas.getContext("2d");
+  sctx.drawImage(depthCanvasEl, 0, 0, segments + 1, segments + 1);
+  const depthData = sctx.getImageData(0, 0, segments + 1, segments + 1).data;
+
+  let minV = 255;
+  let maxV = 0;
+  for (let i = 0; i < depthData.length; i += 4) {
+    const v = depthData[i];
+    if (v < minV) minV = v;
+    if (v > maxV) maxV = v;
+  }
+  const range = Math.max(1, maxV - minV);
+
+  for (let i = 0; i < posAttr.count; i++) {
+    const u = uvAttr.getX(i);
+    const v = uvAttr.getY(i);
+    const px = Math.min(segments, Math.max(0, Math.round(u * segments)));
+    const py = Math.min(segments, Math.max(0, Math.round((1 - v) * segments)));
+    const idx = (py * (segments + 1) + px) * 4;
+    const raw = depthData[idx];
+    const norm = (raw - minV) / range; // 0..1, больше = ближе к камере
+    posAttr.setZ(i, (norm - 0.5) * DEPTH_SCALE);
+  }
+  posAttr.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    roughness: 0.6,
+    metalness: 0.05,
+    side: THREE.DoubleSide,
+  });
+
+  if (mesh) {
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+  }
+  mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+  applyFilter(getSelectedFilter());
+}
+
 function getSelectedFilter() {
   const active = document.querySelector(".filter-btn.active");
   return active ? active.dataset.filter : "none";
@@ -206,3 +272,12 @@ if (canvasEl) {
   initThree();
   loadGallery();
 }
+
+// Мост для depth3d.js (ES-модуль с ИИ-оценкой глубины) — обращается сюда через window.
+window.PhotoViewer3D = {
+  getOriginalImage: () => originalImage,
+  rebuildRelief: buildReliefMesh,
+  resetToFlatCard: () => {
+    if (originalImage) ensureMeshForImage(originalImage);
+  },
+};

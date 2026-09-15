@@ -134,6 +134,20 @@ input[type="file"] {
   cursor: pointer;
 }
 
+.depth-row {
+  margin: 4px 0 12px;
+}
+
+.action-btn {
+  width: 100%;
+}
+
+.muted.small {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 6px 0;
+}
+
 .canvas-wrap {
   position: relative;
   width: 100%;

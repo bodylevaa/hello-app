@@ -46,6 +46,12 @@
         Автовращение
       </label>
 
+      <div class="depth-row">
+        <button type="button" id="rebuild-3d-btn" class="action-btn">Восстановить объём по фото (AI, экспериментально)</button>
+        <p class="muted small">Нейросеть в браузере оценит глубину сцены и «вытянет» карточку в рельеф — видна настоящая перспектива при вращении. Модель весит десятки МБ и грузится по сети при первом нажатии. Обратную, не видную на фото сторону объектов восстановить нельзя — это ограничение любого метода по одному снимку.</p>
+        <p id="depth-status" class="muted"></p>
+      </div>
+
       <div class="canvas-wrap">
         <canvas id="three-canvas"></canvas>
         <p id="viewer-hint">Загрузите фото, чтобы увидеть его в 3D</p>
@@ -65,5 +71,6 @@
 <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="app.js"></script>
 <script src="photo3d.js"></script>
+<script type="module" src="depth3d.js"></script>
 </body>
 </html>
